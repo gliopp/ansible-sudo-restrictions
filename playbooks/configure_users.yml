@@ -1,0 +1,13 @@
+---
+- name: add groups and users
+  hosts: all
+  become: yes
+  vars_files:
+    - /root/ansible/group_vars/apache.yml
+    - /root/ansible/group_vars/kafka.yml
+    - /root/ansible/group_vars/splunk.yml
+  roles:
+    - { role: apache, tags: ['apache'] }
+    - { role: kafka, tags: ['kafka'] }
+    - { role: splunk, tags: ['splunk'] }
+

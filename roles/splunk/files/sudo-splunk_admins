@@ -1,0 +1,2 @@
+%splunk_admins ALL=(ALL) NOPASSWD: /opt/splunk/bin/splunk start, /opt/splunk/bin/splunk stop
+

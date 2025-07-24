@@ -1,0 +1,23 @@
+---
+- name: Ensure apache group(s) exist
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ apache_admins }}"
+  when: "'apache' in group_names"
+
+- name: Ensure apache user(s) exist
+  user:
+    name: "{{ item }}"
+    group: apache_admins
+    state: present
+  loop: "{{ apache_admins }}"
+  when: "'apache' in group_names"
+
+- name: Configure sudo access for apache_admins
+  copy:
+    src: sudo-apache_admins
+    dest: /etc/sudoers.d/sudo-apache_admins
+    mode: '0440'
+  when: "'apache' in group_names"
+

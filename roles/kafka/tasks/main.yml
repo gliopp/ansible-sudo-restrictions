@@ -1,0 +1,23 @@
+---
+- name: Ensure kafka group(s) exist
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ kafka_admins }}"
+  when: "'kafka' in group_names"
+
+- name: Ensure kafka user(s) exist
+  user:
+    name: "{{ item }}"
+    group: kafka_admins
+    state: present
+  loop: "{{ kafka_admins }}"
+  when: "'kafka' in group_names"
+
+- name: Configure sudo access for kafka_admins
+  copy:
+    src: sudo-kafka_admins
+    dest: /etc/sudoers.d/sudo-kafka_admins
+    mode: '0440'
+  when: "'kafka' in group_names"
+
