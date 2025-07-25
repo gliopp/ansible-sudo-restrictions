@@ -1,17 +1,23 @@
----
-- name: Ensure apache group(s) exist
+- name: Ensure apacheadmins group exists
   group:
-    name: "{{ item }}"
+    name: apache_admins
     state: present
+  when: "'apache' in group_names"
+
+- name: Check if each apache user exists
+  command: "getent passwd {{ item }}"
+  register: passwd_check
+  ignore_errors: yes
+  changed_when: false
   loop: "{{ apache_admins }}"
   when: "'apache' in group_names"
 
-- name: Ensure apache user(s) exist
+- name: Add existing apache users to apache_admins group
   user:
-    name: "{{ item }}"
-    group: apache_admins
-    state: present
-  loop: "{{ apache_admins }}"
+    name: "{{ item.item }}"
+    groups: apache_admins
+    append: yes
+  loop: "{{ passwd_check.results | selectattr('rc', 'equalto', 0) | list }}"
   when: "'apache' in group_names"
 
 - name: Configure sudo access for apache_admins

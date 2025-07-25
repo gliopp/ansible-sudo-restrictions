@@ -1,17 +1,23 @@
----
-- name: Ensure kafka group(s) exist
+- name: Ensure kafka_admins group exists
   group:
-    name: "{{ item }}"
+    name: kafka_admins
     state: present
+  when: "'kafka' in group_names"
+
+- name: Check if each kafka user exists
+  command: "getent passwd {{ item }}"
+  register: passwd_check
+  ignore_errors: yes
+  changed_when: false
   loop: "{{ kafka_admins }}"
   when: "'kafka' in group_names"
 
-- name: Ensure kafka user(s) exist
+- name: Add existing kafka users to kafka_admins group
   user:
-    name: "{{ item }}"
-    group: kafka_admins
-    state: present
-  loop: "{{ kafka_admins }}"
+    name: "{{ item.item }}"
+    groups: kafka_admins
+    append: yes
+  loop: "{{ passwd_check.results | selectattr('rc', 'equalto', 0) | list }}"
   when: "'kafka' in group_names"
 
 - name: Configure sudo access for kafka_admins

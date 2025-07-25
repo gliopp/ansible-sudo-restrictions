@@ -1,17 +1,23 @@
----
-- name: Ensure splunk group(s) exist
+- name: Ensure splunk_admins group exists
   group:
-    name: "{{ item }}"
+    name: splunk_admins
     state: present
+  when: "'splunk' in group_names"
+
+- name: Check if each splunk user exists
+  command: "getent passwd {{ item }}"
+  register: passwd_check
+  ignore_errors: yes
+  changed_when: false
   loop: "{{ splunk_admins }}"
   when: "'splunk' in group_names"
 
-- name: Ensure splunk user(s) exist
+- name: Add existing splunk users to splunk_admins group
   user:
-    name: "{{ item }}"
-    group: splunk_admins
-    state: present
-  loop: "{{ splunk_admins }}"
+    name: "{{ item.item }}"
+    groups: splunk_admins
+    append: yes
+  loop: "{{ passwd_check.results | selectattr('rc', 'equalto', 0) | list }}"
   when: "'splunk' in group_names"
 
 - name: Configure sudo access for splunk_admins
@@ -20,3 +26,4 @@
     dest: /etc/sudoers.d/sudo-splunk_admins
     mode: '0440'
   when: "'splunk' in group_names"
+
